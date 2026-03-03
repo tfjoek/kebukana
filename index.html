@@ -15,20 +15,21 @@
             <div class="mode-toggle">
                 <button class="mode-btn active" data-mode="hiragana">あ</button>
                 <button class="mode-btn" data-mode="katakana">ア</button>
-                <button class="mode-btn" data-mode="both">Both</button>
+                <button class="mode-btn" data-mode="both">両方</button>
             </div>
         </div>
     </nav>
 
     <main class="app-container">
         <div class="card">
-            <div id="kana-display" data-romaji=""></div>
+            <div id="kana-display"></div>
+            <span class="kana-hint" id="kana-hint"></span>
             <div class="input-wrapper">
                 <input type="text" id="answer-input" placeholder="..." autocomplete="off" autofocus>
             </div>
         </div>
         
-        <button class="settings-toggle" id="toggle-prefs">Preferences ▾</button>
+        <button class="settings-toggle" id="toggle-prefs">Kana Selection ▾</button>
 
         <section class="preferences-section" id="prefs-content">
             <div class="prefs-inner">
@@ -42,7 +43,6 @@
                         <span id="select-all">Select All</span> <span id="clear-all">Clear All</span>
                     </div>
                 </div>
-                
                 <div class="selection-grid" id="kana-selection-grid"></div>
             </div>
         </section>

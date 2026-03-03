@@ -6,185 +6,67 @@
     --accent-line: #000000;
 }
 
-body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    font-family: 'Noto Sans JP', sans-serif;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    user-select: none; 
-}
+body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans JP', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; user-select: none; }
 
-/* Logo & Toggle Area */
-.top-nav {
-    width: 100%;
-    padding: 30px 40px;
-    display: flex;
-    justify-content: center;
-}
-
-.logo-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo {
-    font-size: 1.3rem;
-    font-weight: 300;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    position: relative;
-    padding-bottom: 6px;
-}
-
+/* Logo & Nav */
+.top-nav { width: 100%; padding: 30px 40px; display: flex; justify-content: center; }
+.logo-area { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.logo { font-size: 1.3rem; font-weight: 300; letter-spacing: 0.4em; text-transform: uppercase; position: relative; padding-bottom: 6px; }
 .logo strong { font-weight: 900; }
+.logo::after { content: ''; position: absolute; bottom: 0; left: 15%; width: 70%; height: 2px; background: var(--accent-line); }
 
-.logo::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 15%;
-    width: 70%;
-    height: 2px;
-    background: var(--accent-line);
+.mode-toggle { display: flex; background: #f0f0f0; padding: 3px; border-radius: 8px; gap: 2px; }
+.mode-btn { background: transparent; border: none; padding: 4px 12px; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 6px; color: #999; }
+.mode-btn.active { background: #fff; color: #000; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+
+/* Main Card */
+.app-container { flex: 1; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 1200px; }
+.card { text-align: center; width: 100%; max-width: 350px; margin-top: 2vh; padding: 20px; border-radius: 12px; }
+
+#kana-display { 
+    font-size: 120px; 
+    font-weight: 700; 
+    margin-bottom: 5px; 
+    display: inline-block; 
+    cursor: help; 
 }
 
-.mode-toggle {
-    display: flex;
-    background: #f0f0f0;
-    padding: 3px;
-    border-radius: 8px;
-    gap: 2px;
-}
-
-.mode-btn {
-    background: transparent;
-    border: none;
-    padding: 4px 12px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    border-radius: 6px;
-    color: #999;
-    transition: all 0.2s ease;
-}
-
-.mode-btn.active {
-    background: #fff;
-    color: #000;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-/* App Core */
-.app-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 1200px;
-}
-
-.card { text-align: center; width: 100%; max-width: 350px; margin-top: 2vh; }
-#kana-display { font-size: 120px; font-weight: 700; margin-bottom: 10px; display: inline-block; }
-
-input[type="text"] {
-    border: none;
-    border-bottom: 2px solid var(--border-soft);
-    font-size: 28px;
-    text-align: center;
-    width: 100%;
-    padding: 10px 0;
-    outline: none;
-    user-select: text;
-}
-
-.settings-toggle {
-    margin: 25px 0;
-    background: transparent;
-    border: none;
+/* The hint below the kana - Hidden by default */
+.kana-hint {
+    display: block;
+    font-size: 20px;
     color: var(--text-muted);
-    cursor: pointer;
-    font-size: 10px;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-/* Compact Preferences Section */
-.preferences-section {
-    width: 95%;
-    max-height: 0;
+    font-weight: 400;
+    margin-top: -5px;
+    margin-bottom: 25px;
+    text-transform: lowercase;
     opacity: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease, opacity 0.3s ease;
-    border-top: 1px solid var(--border-soft);
+    transition: opacity 0.15s ease;
 }
 
-.preferences-section.open {
-    max-height: 1500px;
+/* ONLY show the hint when hovering over the display */
+#kana-display:hover + .kana-hint {
     opacity: 1;
-    padding-top: 20px;
 }
 
-.prefs-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
+input[type="text"] { border: none; border-bottom: 2px solid var(--border-soft); font-size: 28px; text-align: center; width: 100%; padding: 10px 0; outline: none; user-select: text; }
 
+/* Grid Selection - Column Layout */
+.settings-toggle { margin: 25px 0; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 2px; }
+.preferences-section { width: 95%; max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; border-top: 1px solid var(--border-soft); }
+.preferences-section.open { max-height: 1500px; opacity: 1; padding-top: 20px; }
+
+.prefs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .tab-container { display: flex; gap: 6px; }
-.tab-btn {
-    background: #f9f9f9;
-    border: 1px solid #eee;
-    padding: 6px 12px;
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    border-radius: 4px;
-    text-transform: uppercase;
-}
+.tab-btn { background: #f9f9f9; border: 1px solid #eee; padding: 6px 12px; font-size: 10px; font-weight: 700; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
 .tab-btn.active { background: #000; color: #fff; border-color: #000; }
 
-.batch-actions { font-size: 9px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
-.batch-actions span { cursor: pointer; margin-left: 8px; border: 1px solid #eee; padding: 4px 10px; border-radius: 4px; }
-
-.selection-grid {
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    gap: 15px 25px;
-    min-height: 300px;
-}
-
+.selection-grid { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 15px 25px; min-height: 300px; }
 .row-group { width: 260px; }
-.row-label { 
-    font-size: 10px; font-weight: 900; color: #444; 
-    text-transform: uppercase; margin-bottom: 5px; 
-    border-bottom: 1px solid #eee; padding-bottom: 2px; 
-    cursor: pointer;
-}
-
+.row-label { font-size: 10px; font-weight: 900; color: #444; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 2px; cursor: pointer; }
 .tiles-container { display: flex; flex-wrap: wrap; gap: 4px; }
-
-.kana-tile {
-    border: 1px solid #ddd;
-    padding: 6px 0;
-    width: 44px;
-    text-align: center;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-}
+.kana-tile { border: 1px solid #ddd; padding: 6px 0; width: 44px; text-align: center; cursor: pointer; border-radius: 4px; display: flex; flex-direction: column; }
 .kana-tile span:first-child { font-size: 1rem; font-weight: 700; color: #000; }
 .kana-tile span:last-child { font-size: 0.6rem; font-weight: bold; color: #555; }
-
 .kana-tile.active { border: 2px solid #000; background: #fff; padding: 5px 0; opacity: 1; }
 .kana-tile:not(.active) { opacity: 0.55; border-style: dashed; border-color: #bbb; background: #fafafa; }
