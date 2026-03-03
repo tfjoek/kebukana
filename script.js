@@ -1,7 +1,12 @@
 let masterMode = 'hiragana';
 let currentSubTab = 'main';
-let selectedKanas = ['あ', 'い', 'う', 'え', 'お'];
 let currentKana = {};
+
+// Single source of truth for each kana type
+let selections = {
+    hiragana: ['あ', 'い', 'う', 'え', 'お'],
+    katakana: ['ア', 'イ', 'ウ', 'エ', 'オ']
+};
 
 const display = document.getElementById('kana-display');
 const input = document.getElementById('answer-input');
@@ -9,16 +14,36 @@ const grid = document.getElementById('kana-selection-grid');
 const prefsSection = document.getElementById('prefs-content');
 const toggleBtn = document.getElementById('toggle-prefs');
 
+function saveSettings() {
+    const settings = {
+        mode: masterMode,
+        tab: currentSubTab,
+        selections: selections
+    };
+    localStorage.setItem('kebukana_prefs', JSON.stringify(settings));
+}
+
+function loadSettings() {
+    const saved = localStorage.getItem('kebukana_prefs');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        masterMode = parsed.mode || 'hiragana';
+        currentSubTab = parsed.tab || 'main';
+        selections = parsed.selections || selections;
+    }
+}
+
+// Helper to get the correct list based on the character type
+function getListForChar(char) {
+    // Check if it's Katakana (range check)
+    return (char.charCodeAt(0) >= 12449 && char.charCodeAt(0) <= 12538) ? 'katakana' : 'hiragana';
+}
+
 function renderGrid() {
     grid.innerHTML = '';
-    
-    // Determine which datasets to show
-    let activeRows = [];
-    if (masterMode === 'both') {
-        activeRows = [...kanaSets['hiragana'][currentSubTab], ...kanaSets['katakana'][currentSubTab]];
-    } else {
-        activeRows = kanaSets[masterMode][currentSubTab];
-    }
+    let activeRows = (masterMode === 'both') 
+        ? [...kanaSets['hiragana'][currentSubTab], ...kanaSets['katakana'][currentSubTab]] 
+        : kanaSets[masterMode][currentSubTab];
 
     activeRows.forEach(row => {
         const group = document.createElement('div');
@@ -34,7 +59,11 @@ function renderGrid() {
         row.items.forEach(item => {
             const tile = document.createElement('div');
             tile.className = 'kana-tile';
-            if (selectedKanas.includes(item.char)) tile.classList.add('active');
+            
+            // Link: Check the specific list for that character type
+            const listKey = getListForChar(item.char);
+            if (selections[listKey].includes(item.char)) tile.classList.add('active');
+            
             tile.innerHTML = `<span>${item.char}</span><span>${item.romaji}</span>`;
             tile.onclick = () => toggleKana(item.char);
             tilesContainer.appendChild(tile);
@@ -46,48 +75,62 @@ function renderGrid() {
 
 function switchMasterMode(mode) {
     masterMode = mode;
-    
-    // Set default selections when switching modes
-    if (mode === 'hiragana') {
-        selectedKanas = ['あ', 'い', 'う', 'え', 'お'];
-    } else if (mode === 'katakana') {
-        selectedKanas = ['ア', 'イ', 'ウ', 'エ', 'オ'];
-    } else {
-        selectedKanas = ['あ', 'い', 'う', 'え', 'お', 'ア', 'イ', 'ウ', 'エ', 'オ'];
-    }
-
     document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+    saveSettings();
     renderGrid();
     nextQuestion();
 }
 
 function toggleKana(char) {
-    if (selectedKanas.includes(char)) {
-        if (selectedKanas.length > 1) selectedKanas = selectedKanas.filter(k => k !== char);
-    } else { selectedKanas.push(char); }
+    const listKey = getListForChar(char);
+    let currentList = selections[listKey];
+    
+    if (currentList.includes(char)) {
+        // Prevent clearing everything
+        const totalSelected = selections.hiragana.length + selections.katakana.length;
+        if (totalSelected > 1) {
+            selections[listKey] = currentList.filter(k => k !== char);
+        }
+    } else {
+        selections[listKey].push(char);
+    }
+    saveSettings();
     renderGrid();
 }
 
 function toggleRow(row) {
+    const listKey = getListForChar(row.items[0].char);
     const rowChars = row.items.map(i => i.char);
-    const allSelected = rowChars.every(c => selectedKanas.includes(c));
+    let currentList = selections[listKey];
+    const allSelected = rowChars.every(c => currentList.includes(c));
+    
     if (allSelected) {
-        if (selectedKanas.length > rowChars.length) selectedKanas = selectedKanas.filter(c => !rowChars.includes(c));
+        const totalSelected = selections.hiragana.length + selections.katakana.length;
+        if (totalSelected > rowChars.length) {
+            selections[listKey] = currentList.filter(c => !rowChars.includes(c));
+        }
     } else {
-        rowChars.forEach(c => { if (!selectedKanas.includes(c)) selectedKanas.push(c); });
+        rowChars.forEach(c => {
+            if (!selections[listKey].includes(c)) selections[listKey].push(c);
+        });
     }
+    saveSettings();
     renderGrid();
 }
 
 function nextQuestion() {
-    let allItems = [];
-    if (masterMode === 'both') {
-        allItems = [...Object.values(kanaSets['hiragana']).flat(), ...Object.values(kanaSets['katakana']).flat()].flatMap(r => r.items);
-    } else {
-        allItems = Object.values(kanaSets[masterMode]).flat().flatMap(r => r.items);
+    let pool = [];
+    
+    if (masterMode === 'both' || masterMode === 'hiragana') {
+        const hiraItems = Object.values(kanaSets['hiragana']).flat().flatMap(r => r.items);
+        pool.push(...hiraItems.filter(k => selections.hiragana.includes(k.char)));
+    }
+    
+    if (masterMode === 'both' || masterMode === 'katakana') {
+        const kataItems = Object.values(kanaSets['katakana']).flat().flatMap(r => r.items);
+        pool.push(...kataItems.filter(k => selections.katakana.includes(k.char)));
     }
 
-    const pool = allItems.filter(k => selectedKanas.includes(k.char));
     let nextIndex;
     do { 
         nextIndex = Math.floor(Math.random() * pool.length); 
@@ -99,15 +142,16 @@ function nextQuestion() {
     input.value = '';
 }
 
-document.querySelectorAll('.mode-btn').forEach(btn => btn.onclick = () => switchMasterMode(btn.dataset.mode));
+// ... rest of the button listeners (Select All, Clear All, etc.) stay the same ...
+// Note: Ensure the Clear All / Select All also use the getListForChar logic.
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.onclick = () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentSubTab = btn.dataset.tab;
-        renderGrid();
-    };
+document.querySelectorAll('.mode-btn').forEach(btn => btn.onclick = () => switchMasterMode(btn.dataset.mode));
+document.querySelectorAll('.tab-btn').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSubTab = btn.dataset.tab;
+    saveSettings();
+    renderGrid();
 });
 
 toggleBtn.onclick = () => { 
@@ -117,33 +161,34 @@ toggleBtn.onclick = () => {
 };
 
 document.getElementById('select-all').onclick = () => {
-    let activeRows = [];
-    if (masterMode === 'both') {
-        activeRows = [...kanaSets['hiragana'][currentSubTab], ...kanaSets['katakana'][currentSubTab]];
-    } else {
-        activeRows = kanaSets[masterMode][currentSubTab];
+    if (masterMode === 'both' || masterMode === 'hiragana') {
+        kanaSets['hiragana'][currentSubTab].flatMap(r => r.items).forEach(i => {
+            if (!selections.hiragana.includes(i.char)) selections.hiragana.push(i.char);
+        });
     }
-
-    activeRows.flatMap(r => r.items).forEach(i => {
-        if (!selectedKanas.includes(i.char)) selectedKanas.push(i.char);
-    });
+    if (masterMode === 'both' || masterMode === 'katakana') {
+        kanaSets['katakana'][currentSubTab].flatMap(r => r.items).forEach(i => {
+            if (!selections.katakana.includes(i.char)) selections.katakana.push(i.char);
+        });
+    }
+    saveSettings();
     renderGrid();
 };
 
 document.getElementById('clear-all').onclick = () => {
-    let activeRows = [];
-    if (masterMode === 'both') {
-        activeRows = [...kanaSets['hiragana'][currentSubTab], ...kanaSets['katakana'][currentSubTab]];
-    } else {
-        activeRows = kanaSets[masterMode][currentSubTab];
+    if (masterMode === 'both' || masterMode === 'hiragana') {
+        const chars = kanaSets['hiragana'][currentSubTab].flatMap(r => r.items).map(i => i.char);
+        selections.hiragana = selections.hiragana.filter(c => !chars.includes(c));
     }
-
-    const activeChars = activeRows.flatMap(r => r.items).map(i => i.char);
-    selectedKanas = selectedKanas.filter(c => !activeChars.includes(c));
-    
-    if (selectedKanas.length === 0) {
-        selectedKanas = [masterMode === 'katakana' ? 'ア' : 'あ'];
+    if (masterMode === 'both' || masterMode === 'katakana') {
+        const chars = kanaSets['katakana'][currentSubTab].flatMap(r => r.items).map(i => i.char);
+        selections.katakana = selections.katakana.filter(c => !chars.includes(c));
     }
+    // Fallback if empty
+    if (selections.hiragana.length === 0 && selections.katakana.length === 0) {
+        selections.hiragana = ['あ'];
+    }
+    saveSettings();
     renderGrid();
 };
 
@@ -151,4 +196,10 @@ input.addEventListener('input', (e) => {
     if (e.target.value.toLowerCase().trim() === currentKana.romaji) nextQuestion(); 
 });
 
-window.onload = () => switchMasterMode('hiragana');
+window.onload = () => {
+    loadSettings();
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === masterMode));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === currentSubTab));
+    renderGrid();
+    nextQuestion();
+};
