@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KebuKana - Simple Learning</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="top-nav">
+        <div class="logo-area">
+            <span class="logo">Kebu<strong>Kana</strong></span>
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="hiragana">あ</button>
+                <button class="mode-btn" data-mode="katakana">ア</button>
+                <button class="mode-btn" data-mode="both">両方</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="app-container">
+        <div class="card">
+            <div id="kana-display" data-romaji=""></div>
+            <div class="input-wrapper">
+                <input type="text" id="answer-input" placeholder="..." autocomplete="off" autofocus>
+            </div>
+        </div>
+        
+        <button class="settings-toggle" id="toggle-prefs">Preferences ▾</button>
+
+        <section class="preferences-section" id="prefs-content">
+            <div class="prefs-inner">
+                <div class="prefs-header">
+                    <div class="tab-container">
+                        <button class="tab-btn active" data-tab="main">Main</button>
+                        <button class="tab-btn" data-tab="dakuten">Dakuten</button>
+                        <button class="tab-btn" data-tab="yoon">Yōon</button>
+                    </div>
+                    <div class="batch-actions">
+                        <span id="select-all">Select All</span> <span id="clear-all">Clear All</span>
+                    </div>
+                </div>
+                
+                <div class="selection-grid" id="kana-selection-grid"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
