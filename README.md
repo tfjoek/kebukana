@@ -1,1 +1,3 @@
-[KebuKana](tfjoek.github.io/kebukana/)
+[KebuKana](https://tfjoek.github.io/kebukana/)
+
+(not finished)
