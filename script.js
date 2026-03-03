@@ -1,6 +1,12 @@
 let masterMode = 'hiragana';
 let currentSubTab = 'main';
 let currentKana = {};
+let scoreVisible = true;
+
+// Score tracking
+let correctCount = 0;
+let totalAttempts = 0;
+let isFirstAttempt = true;
 
 let selections = {
     hiragana: ['あ', 'い', 'う', 'え', 'お'],
@@ -9,13 +15,31 @@ let selections = {
 
 const display = document.getElementById('kana-display');
 const hint = document.getElementById('kana-hint');
+const scoreDisplay = document.getElementById('score-counter');
+const scoreToggleBtn = document.getElementById('toggle-score-visibility');
 const input = document.getElementById('answer-input');
 const grid = document.getElementById('kana-selection-grid');
 const prefsSection = document.getElementById('prefs-content');
 const toggleBtn = document.getElementById('toggle-prefs');
 
+function updateScore() {
+    scoreDisplay.textContent = `${correctCount} / ${totalAttempts}`;
+}
+
+function toggleScoreVisibility() {
+    scoreVisible = !scoreVisible;
+    scoreDisplay.classList.toggle('hidden', !scoreVisible);
+    scoreToggleBtn.textContent = scoreVisible ? 'Hide Score' : 'Show Score';
+    saveSettings();
+}
+
 function saveSettings() {
-    const settings = { mode: masterMode, tab: currentSubTab, selections: selections };
+    const settings = { 
+        mode: masterMode, 
+        tab: currentSubTab, 
+        selections: selections,
+        scoreVisible: scoreVisible 
+    };
     localStorage.setItem('kebukana_prefs', JSON.stringify(settings));
 }
 
@@ -26,6 +50,11 @@ function loadSettings() {
         masterMode = parsed.mode || 'hiragana';
         currentSubTab = parsed.tab || 'main';
         selections = parsed.selections || selections;
+        scoreVisible = parsed.scoreVisible !== undefined ? parsed.scoreVisible : true;
+        
+        // Apply UI state
+        scoreDisplay.classList.toggle('hidden', !scoreVisible);
+        scoreToggleBtn.textContent = scoreVisible ? 'Hide Score' : 'Show Score';
     }
 }
 
@@ -74,12 +103,19 @@ function nextQuestion() {
         const kataItems = Object.values(kanaSets['katakana']).flat().flatMap(r => r.items);
         pool.push(...kataItems.filter(k => selections.katakana.includes(k.char)));
     }
+    
+    if (pool.length === 0) {
+        pool.push(masterMode === 'katakana' ? {char: 'ア', romaji: 'a'} : {char: 'あ', romaji: 'a'});
+    }
+
     let nextIndex;
     do { nextIndex = Math.floor(Math.random() * pool.length); } while (pool.length > 1 && pool[nextIndex].char === currentKana.char);
+    
     currentKana = pool[nextIndex];
     display.textContent = currentKana.char;
     hint.textContent = currentKana.romaji;
     input.value = '';
+    isFirstAttempt = true; 
 }
 
 function switchMasterMode(mode) {
@@ -131,6 +167,8 @@ toggleBtn.onclick = () => {
     if (isOpen) renderGrid(); 
 };
 
+scoreToggleBtn.onclick = toggleScoreVisibility;
+
 document.getElementById('select-all').onclick = () => {
     if (masterMode === 'both' || masterMode === 'hiragana') {
         kanaSets['hiragana'][currentSubTab].flatMap(r => r.items).forEach(i => { if (!selections.hiragana.includes(i.char)) selections.hiragana.push(i.char); });
@@ -156,8 +194,25 @@ document.getElementById('clear-all').onclick = () => {
     renderGrid();
 };
 
-input.addEventListener('input', (e) => { 
-    if (e.target.value.toLowerCase().trim() === currentKana.romaji) nextQuestion(); 
+input.addEventListener('input', (e) => {
+    const val = e.target.value.toLowerCase().trim();
+    const correct = currentKana.romaji;
+    if (val === correct) {
+        if (isFirstAttempt) {
+            correctCount++;
+            totalAttempts++;
+        }
+        updateScore();
+        nextQuestion();
+    } else {
+        if (!correct.startsWith(val) && val.length > 0) {
+            if (isFirstAttempt) {
+                totalAttempts++;
+                isFirstAttempt = false; 
+            }
+            updateScore();
+        }
+    }
 });
 
 window.onload = () => {
@@ -166,4 +221,5 @@ window.onload = () => {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === currentSubTab));
     renderGrid();
     nextQuestion();
+    updateScore();
 };

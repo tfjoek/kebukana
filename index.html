@@ -12,16 +12,20 @@
     <nav class="top-nav">
         <div class="logo-area">
             <span class="logo">Kebu<strong>Kana</strong></span>
-            <div class="mode-toggle">
-                <button class="mode-btn active" data-mode="hiragana">あ</button>
-                <button class="mode-btn" data-mode="katakana">ア</button>
-                <button class="mode-btn" data-mode="both">両方</button>
+            <div class="mode-toggle-container">
+                <div class="mode-toggle">
+                    <button class="mode-btn active" data-mode="hiragana">あ</button>
+                    <button class="mode-btn" data-mode="katakana">ア</button>
+                    <button class="mode-btn" data-mode="both">両方</button>
+                </div>
+                <span id="toggle-score-visibility" class="score-toggle-link">Hide Score</span>
             </div>
         </div>
     </nav>
 
     <main class="app-container">
         <div class="card">
+            <div id="score-counter" class="score-display">0 / 0</div>
             <div id="kana-display"></div>
             <span class="kana-hint" id="kana-hint"></span>
             <div class="input-wrapper">
@@ -40,7 +44,8 @@
                         <button class="tab-btn" data-tab="yoon">Yōon</button>
                     </div>
                     <div class="batch-actions">
-                        <span id="select-all">Select All</span> <span id="clear-all">Clear All</span>
+                        <span id="select-all">Select All</span> 
+                        <span id="clear-all">Clear All</span>
                     </div>
                 </div>
                 <div class="selection-grid" id="kana-selection-grid"></div>
