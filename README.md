@@ -1,7 +1,7 @@
 # KebuKana
 kana drill website made for my needs
 
-## the "eventually" list (todo)
+# todo
 - [ ] save selections in the browser (localstorage)
 - [ ] pomodoro style timer
 - [ ] pronounciation clips
