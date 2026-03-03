@@ -1,2 +1,1 @@
-website made for my needs
-use it if you like :)
+website made for my needs, use it if you like :)
